@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>One Smartphone, See Through the Global Supply Chain</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;font-family:-apple-system,'PingFang SC','Helvetica Neue',Arial,sans-serif;background:#070b16;color:#d4dff0;-webkit-tap-highlight-color:transparent}
+/* Music Btn */
+.mbtn{position:fixed;top:env(safe-area-inset-top,10px);right:10px;z-index:9999;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#6a9aee;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);transition:.3s}
+.mbtn.on{color:#6a9aee;border-color:rgba(106,154,238,.25)}
+/* Pages */
+.pages{width:100%;height:100%;overflow-y:auto;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch;scroll-behavior:smooth}
+.page{width:100%;height:100%;scroll-snap-align:start;position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center}
+/* Nav dots */
+.ndots{position:fixed;right:8px;top:50%;transform:translateY(-50%);z-index:9998;display:flex;flex-direction:column;gap:8px}
+.ndot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.15);border:none;cursor:pointer;transition:.3s}
+.ndot.active{background:#6a9aee;box-shadow:0 0 5px rgba(106,154,238,.4);transform:scale(1.3)}
+/* ========== PAGE0 COVER ========== */
+.cv{background:radial-gradient(ellipse at 50% 40%,#0e1430 0%,#070b16 72%)}
+.cv-in{position:relative;z-index:2;text-align:center;padding:0 24px}
+.cv-phone{width:90px;height:90px;margin:0 auto 22px;position:relative}
+.cv-phone svg{width:100%;height:100%}
+.cv-glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:110px;height:110px;border-radius:50%;background:radial-gradient(circle,rgba(106,154,238,.12) 0%,transparent 70%);animation:gp 3s ease-in-out infinite}
+@keyframes gp{0%,100%{opacity:.5;transform:translate(-50%,-50%) scale(1)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.35)}}
+.cv h1{font-size:min(7vw,28px);font-weight:800;line-height:1.45;color:#fff;margin-bottom:13px;letter-spacing:.3px}
+.cv h1 em{font-style:normal;color:#6a9aee;text-shadow:0 0 18px rgba(106,154,238,.25)}
+.cv p{font-size:14px;color:#5e70a0;line-height:1.65;margin-bottom:32px;max-width:310px;margin-left:auto;margin-right:auto}
+.cv-btn{display:inline-flex;align-items:center;gap:7px;padding:12px 30px;border-radius:50px;background:linear-gradient(135deg,#122744 0%,#081830 100%);border:1px solid rgba(106,154,238,.22);color:#fff;font-size:14px;font-weight:600;cursor:pointer;animation:breathe 2.8s ease-in-out infinite;transition:box-shadow .3s;font-family:inherit}
+.cv-btn:active{transform:scale(.97)}
+@keyframes breathe{0%,100%{box-shadow:0 0 0 0 rgba(106,154,238,.08)}50%{box-shadow:0 0 16px 3px rgba(106,154,238,.1)}}
+.cv-btn svg{width:14px;height:14px;transition:transform .3s}
+.cv-btn:hover svg{transform:translateX(3px)}
+.cv-hint{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:4px;color:#2d3a5e;font-size:10px}
+.cv-hint .a{animation:bnc 1.6s ease-in-out infinite;font-size:15px}
+@keyframes bnc{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}
+/* ========== PAGE1 PHONE ========== */
+.ph{background:#080c18}
+.ph-hd{position:absolute;top:calc(env(safe-area-inset-top,0px) + 44px);left:0;right:0;text-align:center;z-index:5}
+.ph-hd h2{font-size:17px;font-weight:700;color:#fff;margin-bottom:3px}
+.ph-hd p{font-size:11.5px;color:#4e6090}
+.ph-body{flex:1;width:100%;display:flex;align-items:center;justify-content:center;padding:8px 12px;position:relative}
+.ph-wrap{position:relative;width:100%;max-width:360px;margin:0 auto}
+.ph-wrap svg{width:100%;height:auto}
+/* tap hint */
+.ph-tap{position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);left:0;right:0;text-align:center;font-size:11px;color:#3a4a75;z-index:5}
+/* card */
+.ph-card{position:absolute;right:2%;top:50%;transform:translateY(-50%) translateX(105%);width:200px;background:rgba(8,12,24,.98);border:1px solid rgba(106,154,238,.18);border-radius:13px;padding:16px 14px;z-index:10;transition:transform .38s cubic-bezier(.4,0,.2,1);backdrop-filter:blur(10px);pointer-events:auto}
+.ph-card.show{transform:translateY(-50%) translateX(0)}
+.ph-card-x{position:absolute;top:6px;right:8px;width:20px;height:20px;border-radius:50%;border:none;background:rgba(255,255,255,.05);color:#4e6090;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.ph-card-e{font-size:24px;margin-bottom:6px}
+.ph-card-t{font-size:14px;font-weight:700;color:#fff;margin-bottom:2px}
+.ph-card-l{font-size:11px;color:#6a9aee;margin-bottom:8px;display:flex;align-items:center;gap:3px}
+.ph-card-dv{height:1px;background:linear-gradient(90deg,transparent,rgba(106,154,238,.2),transparent);margin:7px 0}
+.ph-card-d{font-size:11.5px;color:#7e8fb8;line-height:1.7}
+.ph-bot{position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 8px);left:14px;right:14px;text-align:center;font-size:11px;color:#3a4a75;line-height:1.55;padding-top:8px;border-top:1px solid rgba(106,154,238,.05)}
+.ph-bot strong{color:#6a9aee}
+.ph-src{font-size:9.5px;color:#25305a;margin-top:3px}
+/* ========== PAGE2 MAP ========== */
+.mp{background:#070b16}
+.mp-hd{position:absolute;top:calc(env(safe-area-inset-top,0px) + 44px);left:0;right:0;text-align:center;z-index:5;padding:0 14px}
+.mp-hd h2{font-size:17px;font-weight:700;color:#fff;margin-bottom:3px}
+.mp-hd p{font-size:11.5px;color:#4e6090}
+.mp-body{flex:1;width:100%;display:flex;align-items:center;justify-content:center;position:relative;padding:6px 0;overflow:hidden}
+.mp-svg-wrap{width:100%;max-width:440px;margin:0 auto;position:relative}
+.mp-svg-wrap svg{width:100%;height:auto}
+/* year floating label */
+.mp-yl{position:absolute;top:calc(env(safe-area-inset-top,0px) + 44px);right:12px;z-index:6;font-size:min(9vw,36px);font-weight:900;color:rgba(106,154,238,.09);pointer-events:none;line-height:1}
+/* dot pulse */
+@keyframes dotPulse{0%,100%{opacity:.5}50%{opacity:.75}}
+.map-dot{animation:dotPulse 2s ease-in-out infinite}
+/* flow */
+.map-fl{stroke-dasharray:5,4;animation:flAnim 1.1s linear infinite}
+@keyframes flAnim{to{stroke-dashoffset:-9}}
+/* map popup */
+.mp-pop{position:absolute;z-index:20;background:rgba(8,12,28,.97);border:1px solid rgba(106,154,238,.2);border-radius:9px;padding:9px 13px;font-size:11.5px;color:#bbc8e0;pointer-events:none;opacity:0;transition:opacity .2s;max-width:145px;text-align:center;line-height:1.5}
+.mp-pop.show{opacity:1}
+.mp-pop-t{font-weight:700;color:#6a9aee;margin-bottom:3px;font-size:12px}
+/* bottom bar */
+.mp-bot{position:absolute;bottom:0;left:0;right:0;z-index:6;padding:0 14px 16px;background:linear-gradient(to top,#070b16 55%,transparent)}
+.mp-leg{display:flex;justify-content:center;gap:12px;margin-bottom:8px;flex-wrap:wrap}
+.mp-leg-i{display:flex;align-items:center;gap:4px;font-size:10.5px;color:#5e70a0}
+.mp-leg-d{width:6px;height:6px;border-radius:50%}
+.mp-yr{display:flex;justify-content:space-between;margin-bottom:5px}
+.mp-yr-b{font-size:11.5px;color:#4e6090;background:none;border:none;cursor:pointer;padding:2px 7px;border-radius:4px;transition:.3s;font-family:inherit}
+.mp-yr-b.active{color:#6a9aee;font-weight:700;background:rgba(106,154,238,.07)}
+.mp-st{width:100%;height:3px;background:rgba(255,255,255,.05);border-radius:2px;position:relative;cursor:pointer;touch-action:none}
+.mp-st-f{height:100%;background:linear-gradient(90deg,#6a9aee,#a78bfa);border-radius:2px;transition:width .35s}
+.mp-st-t{position:absolute;top:50%;transform:translate(-50%,-50%);width:14px;height:14px;border-radius:50%;background:#6a9aee;border:2px solid #070b16;box-shadow:0 0 6px rgba(106,154,238,.3);transition:left .35s}
+.mp-auto{display:flex;justify-content:center;margin-top:7px}
+.mp-auto-b{padding:5px 16px;border-radius:16px;font-size:11px;cursor:pointer;background:rgba(106,154,238,.07);border:1px solid rgba(106,154,238,.18);color:#6a9aee;transition:.3s;font-family:inherit}
+.mp-auto-b:hover,.mp-auto-b.active{background:rgba(106,154,238,.15)}
+/* ========== PAGE3 TIMELINE ========== */
+.tl{background:#080c18}
+.tl-hd{position:absolute;top:calc(env(safe-area-inset-top,0px) + 44px);left:0;right:0;text-align:center;z-index:5}
+.tl-hd h2{font-size:17px;font-weight:700;color:#fff;margin-bottom:3px}
+.tl-hd p{font-size:11.5px;color:#4e6090}
+.tl-area{flex:1;width:100%;overflow-x:auto;overflow-y:hidden;display:flex;align-items:center;padding:50px 0 48px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;touch-action:pan-x}
+.tl-area::-webkit-scrollbar{display:none}
+.tl-trk{display:flex;gap:0;height:100%;align-items:center;padding:0 10px}
+.tl-nd{min-width:235px;max-width:260px;scroll-snap-align:center;padding:20px 16px;border-radius:15px;background:rgba(255,255,255,.02);border:1px solid rgba(106,154,238,.06);margin:0 9px;transition:all .4s;position:relative}
+.tl-nd.active{border-color:rgba(106,154,238,.25);background:rgba(106,154,238,.03);box-shadow:0 0 20px rgba(106,154,238,.05)}
+.tl-em{font-size:26px;margin-bottom:7px}
+.tl-stp{font-size:9.5px;color:#6a9aee;font-weight:700;letter-spacing:.7px;margin-bottom:6px}
+.tl-ti{font-size:16px;font-weight:700;color:#fff;margin-bottom:6px}
+.tl-cp{font-size:11px;color:#7e8fb8;margin-bottom:8px;line-height:1.5}
+.tl-cp b{color:#aab8d0}
+.tl-ds{font-size:11.5px;color:#5e70a0;line-height:1.7}
+.tl-ar{position:absolute;right:-24px;top:50%;transform:translateY(-50%);font-size:17px;color:rgba(106,154,238,.15)}
+.tl-bar{position:absolute;bottom:40px;left:28px;right:28px;height:2px;background:rgba(255,255,255,.04);border-radius:1px}
+.tl-bar-f{height:100%;background:linear-gradient(90deg,#6a9aee,#a78bfa);border-radius:1px;transition:width .3s}
+.tl-hi{position:absolute;bottom:14px;left:0;right:0;text-align:center;font-size:9.5px;color:#25305a}
+/* ========== PAGE4 CLOSE ========== */
+.cl{background:radial-gradient(ellipse at 50% 50%,#0e1430 0%,#070b16 72%)}
+.cl-in{text-align:center;padding:0 22px;position:relative;z-index:2}
+.cl-ic{font-size:40px;margin-bottom:18px;filter:drop-shadow(0 0 18px rgba(106,154,238,.15))}
+.cl h2{font-size:min(6.5vw,21px);font-weight:800;color:#fff;line-height:1.45;margin-bottom:22px}
+.cl h2 em{font-style:normal;color:#6a9aee}
+.cl-qs{text-align:left;max-width:310px;margin:0 auto 26px}
+.cl-q{display:flex;gap:9px;margin-bottom:13px;padding:11px 13px;border-radius:11px;background:rgba(255,255,255,.02);border-left:2.5px solid #6a9aee}
+.cl-q-n{font-size:15px;font-weight:800;color:#6a9aee;opacity:.45;flex-shrink:0}
+.cl-q-t{font-size:12.5px;color:#7e8fb8;line-height:1.7}
+.cl-btns{display:flex;gap:9px;justify-content:center;flex-wrap:wrap}
+.cl-b{padding:10px 24px;border-radius:50px;font-size:12.5px;font-weight:600;cursor:pointer;transition:.3s;border:none;font-family:inherit}
+.cl-b:active{transform:scale(.96)}
+.cl-b1{background:linear-gradient(135deg,#122744,#081830);color:#fff;border:1px solid rgba(106,154,238,.22)}
+.cl-b1:hover{box-shadow:0 0 14px rgba(106,154,238,.12)}
+.cl-b2{background:transparent;color:#4e6090;border:1px solid rgba(255,255,255,.07)}
+.cl-b2:hover{border-color:rgba(255,255,255,.15)}
+@media(max-width:350px){.cv h1{font-size:22px}.tl-nd{min-width:210px}.ph-card{width:175px}}
+</style>
+</head>
+<body>
+
+<button class="mbtn" id="mbtn" title="BGM">♪</button>
+
+<div class="ndots" id="ndots">
+  <button class="ndot active" data-p="0"></button>
+  <button class="ndot" data-p="1"></button>
+  <button class="ndot" data-p="2"></button>
+  <button class="ndot" data-p="3"></button>
+  <button class="ndot" data-p="4"></button>
+</div>
+
+<div class="pages" id="pages">
+
+  <!-- ===== PAGE 0: COVER ===== -->
+  <section class="page cv" id="pg0">
+    <div style="position:absolute;inset:0;opacity:.04;background-image:url(&quot;data:image/svg+xml,%3Csvg width='30' height='30' viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='15' cy='15' r='1' fill='%236a9aee'/%3E%3C/svg%3E&quot;)"></div>
+    <div class="cv-in">
+      <div class="cv-phone">
+        <div class="cv-glow"></div>
+        <svg viewBox="0 0 90 90" fill="none">
+          <rect x="20" y="10" width="50" height="70" rx="9" fill="#111828" stroke="#22335a" stroke-width="1.5"/>
+          <rect x="25" y="20" width="40" height="50" rx="2" fill="#0a0e18"/>
+          <rect x="37" y="14" width="16" height="4" rx="2" fill="#192240"/>
+          <circle cx="45" cy="76" r="3.5" fill="#192240" stroke="#22335a" stroke-width=".7"/>
+        </svg>
+      </div>
+      <h1>The Phone You Carry<br><em>Is Made by the Entire World</em></h1>
+      <p>3 perspectives to understand how global smartphone supply chains work &amp; shift</p>
+      <button class="cv-btn" onclick="goPg(1)">
+        Start Exploring
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+    <div class="cv-hint"><span class="a">↓</span><span>Swipe</span></div>
+  </section>
+
+  <!-- ===== PAGE 1: PHONE PARTS ===== -->
+  <section class="page ph" id="pg1">
+    <div class="ph-hd">
+      <h2>Who Makes Your Smartphone?</h2>
+      <p>Tap a part to trace its origin</p>
+    </div>
+    <div class="ph-body" id="phBody">
+      <div class="ph-wrap" id="phWrap">
+        <!-- Phone SVG -->
+        <svg viewBox="0 0 340 510" xmlns="http://www.w3.org/2000/svg" id="phSvg">
+          <defs>
+            <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#111828"/><stop offset="100%" stop-color="#0a0e18"/></linearGradient>
+          </defs>
+          <!-- Frame -->
+          <rect x="35" y="18" width="220" height="460" rx="32" fill="none" stroke="#1a2848" stroke-width="1.5"/>
+
+          <!-- [A] Camera Module top-left -->
+          <g id="ptCamera" style="cursor:pointer" onclick="showPart('camera')">
+            <rect x="44" y="36" width="78" height="36" rx="9" fill="#111828" stroke="#2a4070" stroke-width="1.2"/>
+            <circle cx="64" cy="54" r="10" fill="#0a0e18" stroke="#6a9aee" stroke-width=".8" opacity=".82"/>
+            <circle cx="64" cy="54" r="6" fill="#111828" stroke="#2a4070" stroke-width=".5"/>
+            <circle cx="90" cy="54" r="7" fill="#0a0e18" stroke="#6a9aee" stroke-width=".7" opacity=".72"/>
+            <circle cx="90" cy="54" r="4" fill="#111828" stroke="#2a4070" stroke-width=".4"/>
+            <circle cx="112" cy="54" r="5" fill="#0a0e18" stroke="#6a9aee" stroke-width=".6" opacity=".62"/>
+            <circle cx="112" cy="54" r="2.8" fill="#111828" stroke="#2a4070" stroke-width=".3"/>
+            <text x="78" y="86" font-size="9" fill="#6a9aee" text-anchor="middle" font-weight="600" opacity=".55">CAMERA</text>
+          </g>
+
+          <!-- [B] Display Screen -->
+          <g id="ptScreen" style="cursor:pointer" onclick="showPart('screen')">
+            <rect x="38" y="100" width="212" height="182" rx="3" fill="none" stroke="#2a4070" stroke-width="1.2" stroke-dasharray="5,3" opacity=".6"/>
+            <!-- Notch -->
+            <rect x="140" y="100" width="50" height="11" rx="3" fill="#111828" stroke="#1a2848" stroke-width=".7"/>
+            <text x="145" y="220" font-size="9.5" fill="#6a9aee" text-anchor="middle" font-weight="600" opacity=".45">DISPLAY</text>
+            <text x="145" y="236" font-size="8" fill="#4e6090" text-anchor="middle">South Korea</text>
+            <!-- Scan lines -->
+            <line x1="50" y1="140" x2="258" y2="140" stroke="#111828" stroke-width=".3"/>
+            <line x1="50" y1="170" x2="258" y2="170" stroke="#111828" stroke-width=".3"/>
+            <line x1="50" y1="200" x2="258" y2="200" stroke="#111828" stroke-width=".3"/>
+          </g>
+
+          <!-- [C] Chipset / Mainboard -->
+          <g id="ptChip" style="cursor:pointer" onclick="showPart('chip')">
+            <rect x="160" y="290" width="88" height="78" rx="7" fill="#111828" stroke="#2a4070" stroke-width="1.2"/>
+            <rect x="170" y="300" width="68" height="58" rx="4" fill="#0a0e18" stroke="#2a4070" stroke-width=".7"/>
+            <!-- Chip pins -->
+            <circle cx="183" cy="314" r="2.2" fill="#1a2848" stroke="#6a9aee" stroke-width=".5" opacity=".7"/>
+            <circle cx="200" cy="314" r="2.2" fill="#1a2848" stroke="#6a9aee" stroke-width=".5" opacity=".7"/>
+            <circle cx="217" cy="314" r="2.2" fill="#1a2848" stroke="#6a9aee" stroke-width=".5" opacity=".7"/>
+            <circle cx="234" cy="314" r="2.2" fill="#1a2848" stroke="#6a9aee" stroke-width=".5" opacity=".7"/>
+            <line x1="170" y1="325" x2="238" y2="325" stroke="#111828" stroke-width=".4"/>
+            <line x1="170" y1="337" x2="238" y2="337" stroke="#111828" stroke-width=".4"/>
+            <line x1="170" y1="349" x2="238" y2="349" stroke="#111828" stroke-width=".4"/>
+            <text x="204" y="385" font-size="8.5" fill="#6a9aee" text-anchor="middle" font-weight="600" opacity=".55">CHIPSET</text>
+          </g>
+
+          <!-- [D] Battery / Rare Earth -->
+          <g id="ptRare" style="cursor:pointer" onclick="showPart('rare')">
+            <rect x="44" y="295" width="100" height="72" rx="8" fill="#111828" stroke="#2a4070" stroke-width="1"/>
+            <!-- Battery icon -->
+            <rect x="62" y="308" width="30" height="42" rx="3" fill="#0a0e18" stroke="#2a4070" stroke-width=".6"/>
+            <rect x="73" y="305" width="8" height="3" rx="1" fill="#2a4070"/>
+            <rect x="67" y="320" width="20" height="18" rx="2" fill="#122744" opacity=".6"/>
+            <text x="94" y="385" font-size="8" fill="#6a9aee" text-anchor="middle" font-weight="600" opacity=".5">RARE EARTH</text>
+          </g>
+
+          <!-- [E] Final Assembly (bottom) -->
+          <g id="ptAsm" style="cursor:pointer" onclick="showPart('assembly')">
+            <rect x="38" y="380" width="212" height="95" rx="6" fill="#0d1425" stroke="#2a4070" stroke-width="1.2"/>
+            <text x="144" y="418" font-size="9" fill="#6a9aee" text-anchor="middle" font-weight="600" opacity=".6">FINAL ASSEMBLY</text>
+            <text x="144" y="435" font-size="8" fill="#4e6090" text-anchor="middle">China · Vietnam · India</text>
+            <circle cx="60" cy="455" r="2.2" fill="none" stroke="#2a4070" stroke-width=".7"/>
+            <circle cx="268" cy="455" r="2.2" fill="none" stroke="#2a4070" stroke-width=".7"/>
+          </g>
+
+          <!-- Subtle circuit lines -->
+          <g opacity=".12" stroke="#6a9aee" stroke-width=".4" fill="none">
+            <line x1="144" y1="282" x2="144" y2="295"/>
+            <line x1="94" y1="282" x2="94" y2="295"/>
+            <line x1="204" y1="282" x2="204" y2="295"/>
+          </g>
+        </svg>
+
+        <!-- Info Card -->
+        <div class="ph-card" id="phCard">
+          <button class="ph-card-x" onclick="closePart()">✕</button>
+          <div class="ph-card-e" id="cE"></div>
+          <div class="ph-card-t" id="cT"></div>
+          <div class="ph-card-l" id="cL"></div>
+          <div class="ph-card-dv"></div>
+          <div class="ph-card-d" id="cD"></div>
+        </div>
+      </div>
+    </div>
+    <div class="ph-tap">Tap a part to explore</div>
+    <div class="ph-bot">
+      No single nation can build a smartphone alone.<br>
+      <strong>Global division of labor</strong> penetrates every corner.
+      <div class="ph-src">Source: apple.com</div>
+    </div>
+  </section>
+
+  <!-- ===== PAGE 2: MAP ===== -->
+  <section class="page mp" id="pg2">
+    <div class="mp-hd">
+      <h2>Global Supply Chain Migration</h2>
+      <p>2018 → 2026 · Drag slider to explore</p>
+    </div>
+    <div class="mp-yl" id="mpYl">2018</div>
+    <div class="mp-body" id="mpBody">
+      <div class="mp-svg-wrap">
+        <svg viewBox="0 0 800 440" xmlns="http://www.w3.org/2000/svg" id="mpSvg">
+          <!-- Grid -->
+          <g opacity=".03" stroke="#6a9aee" stroke-width=".4">
+            <line x1="0" y1="110" x2="800" y2="110"/>
+            <line x1="0" y1="220" x2="800" y2="220"/>
+            <line x1="0" y1="330" x2="800" y2="330"/>
+            <line x1="200" y1="0" x2="200" y2="440"/>
+            <line x1="400" y1="0" x2="400" y2="440"/>
+            <line x1="600" y1="0" x2="600" y2="440"/>
+          </g>
+          <!--
+            Geographic layout v3 — reference Mercator, viewBox 0 0 800 440
+            Latitude mapping (approx): 70°N→y=40, 35°N→y=175, 10°N→y=280, 0→y=310, 20°S→y=370
+            Longitude mapping: 120°W→x=60, 0°→x=330, 80°E→x=540, 120°E→x=620, 145°E→x=680
+
+            USA:    x=50-265,  y=80-210  (North America, far left)
+            Europe: x=290-460, y=52-155  (upper center-left, well ABOVE China)
+            Russia: (implied background, not drawn)
+            India:  x=460-555, y=230-340 (peninsula, south Asia — clearly BELOW Europe)
+            China:  x=545-720, y=175-305 (East Asia, clearly BELOW Europe, overlaps India top-right)
+            Vietnam:x=610-660, y=305-365 (SE Asia, below China)
+            S.Korea:x=665-710, y=215-245 (east coast of China, BELOW Japan)
+            Japan:  x=695-760, y=165-215 (island chain, ABOVE Korea)
+            Taiwan: x=660-685, y=255-270 (small island, below Korea, east of SE China)
+          -->
+
+          <!-- ===== BACKGROUND LANDMASS (non-interactive, full world map) ===== -->
+
+          <!-- Russia (huge block spanning top of Eurasia) -->
+          <path id="mRU" d="
+            M338,42 L428,26 L545,20 L660,22 L740,30 L772,48
+            L778,80 L778,138
+            L756,150 L728,158 L700,162
+            L672,163 L640,162 L610,163 L578,168
+            L555,178
+            L518,170 L480,163 L450,156
+            L408,148 L370,136 L342,116 L330,90 Z"
+            fill="#0b1422" stroke="#162540" stroke-width="0.8"/>
+          <text x="590" y="100" font-size="9" fill="#2e4268" text-anchor="middle" letter-spacing="1">RUSSIA</text>
+
+          <!-- Central Asia / Mongolia / Kazakhstan -->
+          <path id="mCA" d="
+            M450,156 L518,170 L555,178
+            L548,192 L520,195 L490,192
+            L462,188 L440,178 L436,165 Z"
+            fill="#0b1422" stroke="#162540" stroke-width="0.7"/>
+          <text x="490" y="178" font-size="7.5" fill="#243550" text-anchor="middle">C. Asia</text>
+
+          <!-- ===== South America (left, below USA) ===== -->
+          <path id="mSA" d="
+            M165,218 L205,212 L240,218 L252,240
+            L248,268 L240,295 L225,320 L212,345
+            L198,365 L182,378 L172,375 L160,358
+            L152,335 L148,310 L145,285 L152,260 Z"
+            fill="#0b1422" stroke="#162540" stroke-width="0.7"/>
+          <text x="198" y="310" font-size="8" fill="#243550" text-anchor="middle" letter-spacing="0.5">S.AMERICA</text>
+
+          <!-- ===== Africa (center-left, below Europe, left of India) ===== -->
+          <path id="mAF" d="
+            M280,165 L338,162 L378,168 L400,178
+            L408,195 L412,218 L420,238
+            L415,260 L398,280 L380,305
+            L362,330 L348,348 L335,356 L318,352
+            L308,335 L298,315 L290,295
+            L282,268 L275,240 L272,210 L275,188 Z"
+            fill="#0b1422" stroke="#162540" stroke-width="0.8"/>
+          <text x="355" y="275" font-size="8" fill="#243550" text-anchor="middle" letter-spacing="1">AFRICA</text>
+
+          <!-- ===== Middle East / Arabian Peninsula ===== -->
+          <path id="mME" d="
+            M420,175 L440,170 L455,172 L460,185
+            L458,200 L448,215 L440,225
+            L430,228 L422,218 L418,200 Z"
+            fill="#0b1422" stroke="#162540" stroke-width="0.6"/>
+          <text x="440" y="202" font-size="6.5" fill="#243550" text-anchor="middle">M.East</text>
+
+          <!-- ===== Southeast Asia (Thailand, Malaysia, Indonesia, Philippines) ===== -->
+          <!-- Thailand / Myanmar / Laos -->
+          <path id="mSEA1" d="
+            M555,278 L580,275 L595,282 L598,295
+            L590,310 L580,318 L570,315 L558,305 Z"
+            fill="#0b1422" stroke="#162540" stroke-width="0.6"/>
+          <text x="576" y="300" font-size="6.5" fill="#243550" text-anchor="middle">Thai</text>
+
+          <!-- Malaysia peninsula + Singapore -->
+          <path id="mSEA2" d="
+            M568,320 L580,318 L586,325 L585,340 L575,345 L568,340 Z"
+            fill="#0b1422" stroke="#162540" stroke-width="0.5"/>
+          <text x="578" y="335" font-size="6" fill="#243550" text-anchor="middle">Malay</text>
+
+          <!-- Indonesia (Sumatra, Java, Borneo, Sulawesi islands) -->
+          <path id="mINDO1" d="M580,348 L595,342 L610,346 L608,358 L592,362 L580,355 Z"
+            fill="#0b1422" stroke="#162540" stroke-width="0.5"/>
+          <path id="mINDO2" d="M625,350 L645,345 L660,350 L655,362 L638,365 L625,358 Z"
+            fill="#0b1422" stroke="#162540" stroke-width="0.5"/>
+          <path id="mINDO3" d="M680,340 L700,336 L712,342 L708,354 L688,355 L680,348 Z"
+            fill="#0b1422" stroke="#162540" stroke-width="0.5"/>
+          <text x="650" y="360" font-size="6.5" fill="#243550" text-anchor="middle">Indonesia</text>
+
+          <!-- Philippines -->
+          <path id="mPH" d="M700,270 L708,268 L712,275 L708,286 L700,290 L696,282 Z"
+            fill="#0b1422" stroke="#162540" stroke-width="0.5"/>
+          <text x="708" y="282" font-size="6" fill="#243550" text-anchor="middle">Phil</text>
+
+          <!-- ===== Australia (far right, bottom) ===== -->
+          <path id="mAU" d="
+            M650,380 L680,370 L715,368 L745,375
+            L758,388 L755,405 L732,416
+            L700,420 L670,416 L652,405 L645,392 Z"
+            fill="#0b1422" stroke="#162540" stroke-width="0.8"/>
+          <text x="700" y="400" font-size="8" fill="#243550" text-anchor="middle" letter-spacing="1">AUSTRALIA</text>
+
+          <!-- ===== INTERACTIVE COUNTRIES ===== -->
+
+          <!-- USA (North America west block) -->
+          <path id="mUS" d="M55,85 L172,68 L240,80 L268,115 L250,172 L188,198 L118,192 L70,165 L48,128 Z"
+            fill="#0d1528" stroke="#1a3050" stroke-width="1.2" style="cursor:pointer"/>
+
+          <!-- Europe (upper area, well above Asia) -->
+          <path id="mEU" d="M295,56 L390,42 L448,55 L468,92 L455,138 L415,155 L365,152 L322,134 L292,105 Z"
+            fill="#0d1528" stroke="#1a3050" stroke-width="1" style="cursor:pointer"/>
+
+          <!-- India (south Asia peninsula, clearly lower than Europe) -->
+          <path id="mIN" d="M468,232 L520,218 L558,228 L568,258 L562,288 L538,318 L510,330 L484,318 L462,295 L455,265 Z"
+            fill="#0d1528" stroke="#1a3050" stroke-width="1.2" style="cursor:pointer"/>
+
+          <!-- China (large block, East Asia — starts well BELOW Europe) -->
+          <path id="mCN" d="M552,178 L622,162 L678,172 L718,192 L728,222 L718,255 L698,278 L670,292 L638,296 L604,290 L572,272 L552,248 L540,220 Z"
+            fill="#0d1528" stroke="#1a3050" stroke-width="1.4" style="cursor:pointer"/>
+
+          <!-- Vietnam (narrow strip, SE Asia below China) -->
+          <path id="mVN" d="M634,298 L658,292 L668,308 L662,332 L648,345 L634,338 L624,320 Z"
+            fill="#0d1528" stroke="#1a3050" stroke-width="1" style="cursor:pointer"/>
+
+          <!-- Japan (island chain, upper-right, ABOVE Korea) -->
+          <path id="mJP" d="M706,168 L740,160 L758,172 L754,196 L738,206 L716,200 L706,185 Z"
+            fill="#0d1528" stroke="#1a3050" stroke-width="1" style="cursor:pointer"/>
+
+          <!-- S.Korea: directly BELOW Japan -->
+          <path id="mKR" d="M698,215 L718,210 L728,220 L724,235 L712,240 L700,233 Z"
+            fill="#0d1528" stroke="#1a3050" stroke-width=".8" style="cursor:pointer"/>
+
+          <!-- Taiwan (China): small island, below S.Korea, east of China coast -->
+          <rect id="mTW" x="668" y="258" width="22" height="12" rx="2.5"
+            fill="#0d1528" stroke="#1a3050" stroke-width=".7" style="cursor:pointer"/>
+
+          <!-- Capacity dots centered in China shape (~632, 232) -->
+          <circle class="map-dot" id="dc18" cx="632" cy="232" r="24" fill="#6a9aee" opacity="0" data-yr="2018"/>
+          <circle class="map-dot" id="dc20" cx="632" cy="232" r="21" fill="#6a9aee" opacity="0" data-yr="2020"/>
+          <circle class="map-dot" id="dc22" cx="632" cy="232" r="19" fill="#6a9aee" opacity="0" data-yr="2022"/>
+          <circle class="map-dot" id="dc24" cx="632" cy="232" r="17" fill="#6a9aee" opacity="0" data-yr="2024"/>
+          <circle class="map-dot" id="dc26" cx="632" cy="232" r="15" fill="#6a9aee" opacity="0" data-yr="2026"/>
+          <!-- Vietnam dots (center ~648, 320) -->
+          <circle class="map-dot" id="dv20" cx="648" cy="320" r="4" fill="#a78bfa" opacity="0" data-yr="2020"/>
+          <circle class="map-dot" id="dv22" cx="648" cy="320" r="6" fill="#a78bfa" opacity="0" data-yr="2022"/>
+          <circle class="map-dot" id="dv24" cx="648" cy="320" r="7" fill="#a78bfa" opacity="0" data-yr="2024"/>
+          <circle class="map-dot" id="dv26" cx="648" cy="320" r="8" fill="#a78bfa" opacity="0" data-yr="2026"/>
+          <!-- India dots (center ~513, 275) -->
+          <circle class="map-dot" id="di22" cx="513" cy="275" r="4" fill="#f59e0b" opacity="0" data-yr="2022"/>
+          <circle class="map-dot" id="di24" cx="513" cy="275" r="6" fill="#f59e0b" opacity="0" data-yr="2024"/>
+          <circle class="map-dot" id="di26" cx="513" cy="275" r="7" fill="#f59e0b" opacity="0" data-yr="2026"/>
+
+          <!-- Flow lines -->
+          <path class="map-fl" id="flCV" d="M650,294 C650,300 650,308 649,314" stroke="#a78bfa" stroke-width="2" opacity="0" fill="none" data-yr="2020,2022,2024,2026"/>
+          <path class="map-fl" id="flCI" d="M574,268 C562,270 540,273 528,274" stroke="#f59e0b" stroke-width="2" opacity="0" fill="none" data-yr="2022,2024,2026"/>
+
+          <!-- Country Labels -->
+          <text x="632" y="228" font-size="10" fill="#6a9aee" text-anchor="middle" font-weight="600">China</text>
+          <text x="648" y="358" font-size="9" fill="#a78bfa" text-anchor="middle">Vietnam</text>
+          <text x="513" y="348" font-size="9" fill="#f59e0b" text-anchor="middle">India</text>
+          <text x="158" y="142" font-size="9" fill="#4e6090" text-anchor="middle">USA</text>
+          <text x="732" y="188" font-size="8.5" fill="#4e6090" text-anchor="middle">Japan</text>
+          <text x="714" y="252" font-size="8" fill="#4e6090" text-anchor="middle">S.Korea</text>
+          <text x="679" y="272" font-size="7.5" fill="#4e6090" text-anchor="middle">Taiwan</text>
+          <text x="679" y="282" font-size="7" fill="#3a5080" text-anchor="middle">(China)</text>
+          <text x="378" y="102" font-size="9" fill="#4e6090" text-anchor="middle">Europe</text>
+
+          <!-- Legend -->
+          <g transform="translate(14,355)">
+            <rect width="168" height="72" rx="8" fill="rgba(0,0,0,.45)" stroke="#1a3050" stroke-width=".5"/>
+            <circle cx="16" cy="20" r="4" fill="#6a9aee"/><text x="26" y="24" font-size="9" fill="#7e8fb8">China (full-chain hub)</text>
+            <circle cx="16" cy="38" r="4" fill="#a78bfa"/><text x="26" y="42" font-size="9" fill="#7e8fb8">Vietnam (mid-range)</text>
+            <circle cx="16" cy="56" r="4" fill="#f59e0b"/><text x="26" y="60" font-size="9" fill="#7e8fb8">India (domestic mkt)</text>
+          </g>
+        </svg>
+
+        <!-- Popup -->
+        <div class="mp-pop" id="mpPop">
+          <div class="mp-pop-t" id="mpPopT"></div>
+          <div id="mpPopB"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom bar -->
+    <div class="mp-bot">
+      <div class="mp-leg">
+        <div class="mp-leg-i"><div class="mp-leg-d" style="background:#6a9aee"></div>China</div>
+        <div class="mp-leg-i"><div class="mp-leg-d" style="background:#a78bfa"></div>Vietnam</div>
+        <div class="mp-leg-i"><div class="mp-leg-d" style="background:#f59e0b"></div>India</div>
+      </div>
+      <div class="mp-yr" id="mpYr">
+        <button class="mp-yr-b" data-yr="2018">2018</button>
+        <button class="mp-yr-b" data-yr="2020">2020</button>
+        <button class="mp-yr-b" data-yr="2022">2022</button>
+        <button class="mp-yr-b" data-yr="2024">2024</button>
+        <button class="mp-yr-b" data-yr="2026">2026</button>
+      </div>
+      <div class="mp-st" id="mpSt">
+        <div class="mp-st-f" id="mpStF" style="width:0%"></div>
+        <div class="mp-st-t" id="mpStT" style="left:0%"></div>
+      </div>
+      <div class="mp-auto"><button class="mp-auto-b" id="autoB" onclick="toggleAuto()">▶ Auto Play</button></div>
+    </div>
+  </section>
+
+  <!-- ===== PAGE 3: TIMELINE ===== -->
+  <section class="page tl" id="pg3">
+    <div class="tl-hd">
+      <h2>How a Smartphone Is Made</h2>
+      <p>Swipe ← → to explore each step</p>
+    </div>
+    <div class="tl-area" id="tlArea">
+      <div class="tl-trk">
+        <div class="tl-nd active" data-idx="0">
+          <div class="tl-em">✏️</div>
+          <div class="tl-stp">STEP 01 · UPSTREAM · HIGH MARGIN</div>
+          <div class="tl-ti">Product Design</div>
+          <div class="tl-cp"><b>Key players:</b><br>Apple · Huawei · Xiaomi · Samsung</div>
+          <div class="tl-ds">Whoever controls design controls pricing &amp; product positioning. The most profitable segment of the entire supply chain.</div>
+        </div>
+        <div style="display:flex;align-items:center;font-size:16px;color:rgba(106,154,238,.15);margin:0 -4px">→</div>
+        <div class="tl-nd" data-idx="1">
+          <div class="tl-em">🔬</div>
+          <div class="tl-stp">STEP 02 · MIDSTREAM · CORE</div>
+          <div class="tl-ti">Component Manufacturing</div>
+          <div class="tl-cp"><b>Key players:</b><br>TSMC · Samsung Display · Sony · BOE · CATL</div>
+          <div class="tl-ds">Depends on specialized firms across countries — the deepest point of global interdependence. No single nation can be self-sufficient.</div>
+        </div>
+        <div style="display:flex;align-items:center;font-size:16px;color:rgba(106,154,238,.15);margin:0 -4px">→</div>
+        <div class="tl-nd" data-idx="2">
+          <div class="tl-em">🏭</div>
+          <div class="tl-stp">STEP 03 · DOWNSTREAM · LABOR-INTENSIVE</div>
+          <div class="tl-ti">Final Assembly</div>
+          <div class="tl-cp"><b>Key players:</b><br>Foxconn · Luxshare · Wistron · Compal</div>
+          <div class="tl-ds">Lowest technical barrier — manual labor &amp; assembly lines. Also the segment seeing the most visible global relocation.</div>
+        </div>
+        <div style="display:flex;align-items:center;font-size:16px;color:rgba(106,154,238,.15);margin:0 -4px">→</div>
+        <div class="tl-nd" data-idx="3">
+          <div class="tl-em">🌍</div>
+          <div class="tl-stp">STEP 04 · DISTRIBUTION · CLOSED LOOP</div>
+          <div class="tl-ti">Global Sales &amp; Service</div>
+          <div class="tl-cp"><b>Channels:</b><br>Brand stores · Carriers · Cross-border e-commerce</div>
+          <div class="tl-ds">Brands control sales channels &amp; capture terminal brand premiums — completing the final loop of the value chain.</div>
+        </div>
+      </div>
+    </div>
+    <div class="tl-bar"><div class="tl-bar-f" id="tlBarF" style="width:0%"></div></div>
+    <div class="tl-hi">← Swipe to explore →</div>
+  </section>
+
+  <!-- ===== PAGE 4: CLOSE ===== -->
+  <section class="page cl" id="pg4">
+    <div style="position:absolute;inset:0;opacity:.03;background-image:url(&quot;data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='20' cy='20' r='1.2' fill='%236a9aee'/%3E%3C/svg%3E&quot;)"></div>
+    <div class="cl-in">
+      <div class="cl-ic">🌐</div>
+      <h2>One Smartphone Reveals the<br><em>Truth Behind Global Division</em></h2>
+      <div class="cl-qs">
+        <div class="cl-q">
+          <span class="cl-q-n">1</span>
+          <div class="cl-q-t">No single country can build a smartphone alone. Globalized division of labor is an inevitable trend for electronic products.</div>
+        </div>
+        <div class="cl-q">
+          <span class="cl-q-n">2</span>
+          <div class="cl-q-t">Industry transfer only relocates low-end assembly. Core components &amp; industrial support ecosystems remain anchored at home.</div>
+        </div>
+        <div class="cl-q">
+          <span class="cl-q-n">3</span>
+          <div class="cl-q-t">From design → components → assembly → sales: supply chain bargaining power determines real industry profits.</div>
+        </div>
+      </div>
+      <div class="cl-btns">
+        <button class="cl-b cl-b1" onclick="goPg(0)">↻ Replay</button>
+        <button class="cl-b cl-b2" onclick="doShare()">Share</button>
+      </div>
+    </div>
+  </section>
+
+</div><!-- /pages -->
+
+<script>
+/* ========== DATA ========== */
+var PARTS = {
+  camera: {e:'📷',t:'Camera Module',loc:'📍 Japan',d:'Phone lenses & image sensors mostly produced in Japan. Deep Japanese optical expertise enables HD photography, night mode & advanced imaging in modern smartphones.'},
+  screen: {e:'🖥️',t:'Display Screen',loc:'📍 South Korea',d:'Premium OLED displays dominated by Korean manufacturers. Precision optoelectronic components directly determine image quality & touch responsiveness.'},
+  chip: {e:'💾',t:'Chipset',loc:'📍 Taiwan (China), United States',d:'The "brain" of your phone. High-end chip design: U.S. firms. Fabrication: Taiwan wafer fabs. Most technologically demanding link in the entire chain.'},
+  rare: {e:'⚡',t:'Rare-Earth Materials',loc:'📍 China',d:'Vibration motors, speakers & camera OIS all depend on rare earths. China holds the world\'s most complete rare-earth mining, refining & processing supply chain.'},
+  assembly: {e:'🏭',t:'Final Assembly',loc:'📍 China · Vietnam · India',d:'Labor-intensive work needing massive mature workforces & factory ecosystems. Today\'s global phone assembly forms a three-way balance of power.'}
+};
+var MAP_D = {
+  2018:{cn:92,vn:2,in:1},2020:{cn:85,vn:8,in:3},
+  2022:{cn:78,vn:12,in:7},2024:{cn:72,vn:15,in:11},
+  2026:{cn:68,vn:17,in:14}
+};
+var YRS = [2018,2020,2022,2024,2026];
+
+/* ========== PAGE NAV ========== */
+var curPg = 0;
+var pagesEl = document.getElementById('pages');
+var nds = document.querySelectorAll('.ndot');
+function goPg(n){
+  curPg = Math.max(0,Math.min(n,4));
+  pagesEl.scrollTo({top:innerHeight*curPg,behavior:'smooth'});
+  nds.forEach(function(d,i){d.classList.toggle('active',i===curPg);});
+}
+pagesEl.addEventListener('scroll',function(){
+  var i = Math.round(pagesEl.scrollTop/innerHeight);
+  if(i!==curPg){curPg=i;nds.forEach(function(d,j){d.classList.toggle('active',j===curPg);});}
+});
+nds.forEach(function(d){d.addEventListener('click',function(){goPg(+d.dataset.p);});});
+/* touch swipe */
+var ty0=0;
+pagesEl.addEventListener('touchstart',function(e){ty0=e.touches[0].clientY;},{passive:true});
+pagesEl.addEventListener('touchend',function(e){
+  var d=ty0-e.changedTouches[0].clientY;
+  if(Math.abs(d)>45)goPg(curPg+(d>0?1:-1));
+},{passive:true});
+
+/* ========== PHONE PARTS ========== */
+var activePart = null;
+function showPart(k){
+  if(activePart===k){closePart();return;}
+  activePart=k;
+  document.querySelectorAll('.ph-wrap g').forEach(function(el){el.style.filter='';});
+  var el=document.getElementById('pt'+k.charAt(0).toUpperCase()+k.slice(1));
+  if(el)el.style.filter='drop-shadow(0 0 8px rgba(106,154,238,.5))';
+  var d=PARTS[k];
+  document.getElementById('cE').textContent=d.e;
+  document.getElementById('cT').textContent=d.t;
+  document.getElementById('cL').textContent=d.loc;
+  document.getElementById('cD').textContent=d.d;
+  document.getElementById('phCard').classList.add('show');
+}
+function closePart(){
+  activePart=null;
+  document.getElementById('phCard').classList.remove('show');
+  document.querySelectorAll('.ph-wrap g').forEach(function(el){el.style.filter='';});
+}
+
+/* ========== MAP ========== */
+var curYr = 2018;
+var autoTmr = null;
+
+function updateMap(yr){
+  curYr = yr;
+  var idx = YRS.indexOf(yr);
+  var pct = idx/(YRS.length-1)*100;
+  document.getElementById('mpStF').style.width = pct+'%';
+  document.getElementById('mpStT').style.left = pct+'%';
+  document.getElementById('mpYl').textContent = yr;
+  document.querySelectorAll('.mp-yr-b').forEach(function(b){b.classList.toggle('active',+b.dataset.yr===yr);});
+
+  /* dots & flows */
+  document.querySelectorAll('[data-yr]').forEach(function(el){
+    var yrs = el.getAttribute('data-yr').split(',').map(Number);
+    var show = yrs.indexOf(yr)>=0;
+    el.style.opacity = show ? (el.classList.contains('map-fl')||el.id.startsWith('fl')?'.45':'.55') : '0';
+    if(el.tagName==='circle')el.style.opacity=show?'.45':'0';
+  });
+
+  /* highlight */
+  var d=MAP_D[yr];
+  document.getElementById('mCN').style.fill = d.cn>=80?'#152240':'#0d1528';
+  if(d.vn>=5)document.getElementById('mVN').style.fill='#121a38';
+  if(d.in>=5)document.getElementById('mIN').style.fill='#121a38';
+}
+
+/* slider drag */
+var mpSt = document.getElementById('mpSt');
+var sliding=false;
+mpSt.addEventListener('mousedown',startSl);
+mpSt.addEventListener('touchstart',startSl,{passive:false});
+function startSl(e){
+  sliding=true; doSl(e);
+  document.addEventListener('mousemove',doSl);
+  document.addEventListener('mouseup',stopSl);
+  document.addEventListener('touchmove',doSl,{passive:false});
+  document.addEventListener('touchend',stopSl);
+}
+function doSl(e){
+  if(!sliding)return;
+  e.preventDefault();
+  var rect = mpSt.getBoundingClientRect();
+  var clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  var pct = Math.max(0,Math.min(1,(clientX-rect.left)/rect.width));
+  var idx = Math.round(pct*(YRS.length-1));
+  updateMap(YRS[idx]);
+}
+function stopSl(){sliding=false;document.removeEventListener('mousemove',doSl);document.removeEventListener('touchmove',doSl);}
+
+document.querySelectorAll('.mp-yr-b').forEach(function(b){b.addEventListener('click',function(){updateMap(+b.dataset.yr);});});
+
+function toggleAuto(){
+  var btn=document.getElementById('autoB');
+  if(autoTmr){clearInterval(autoTmr);autoTmr=null;btn.textContent='▶ Auto Play';btn.classList.remove('active');}
+  else{
+    btn.textContent='⏸ Pause';btn.classList.add('active');
+    autoTmr=setInterval(function(){
+      var idx=YRS.indexOf(curYr);
+      if(idx>=YRS.length-1){clearInterval(autoTmr);autoTmr=null;btn.textContent='▶ Auto Play';btn.classList.remove('active');}
+      else updateMap(YRS[idx+1]);
+    },2200);
+  }
+}
+
+/* map region click */
+function addMapClick(id){
+  var el=document.getElementById(id);
+  if(!el)return;
+  el.addEventListener('click',function(){
+    var nm=el.id==='mCN'?'China':el.id==='mVN'?'Vietnam':el.id==='mIN'?'India':'Unknown';
+    var d=MAP_D[curYr];
+    var body='';
+    if(nm==='China')body='Assembly: ~'+d.cn+'% ('+curYr+')<br><span style="font-size:11px;color:#4e6090">Full-chain ecosystem hub</span>';
+    else if(nm==='Vietnam')body='Assembly: ~'+d.vn+'% ('+curYr+')<br><span style="font-size:11px;color:#4e6090">Mid-range assembly hub</span>';
+    else if(nm==='India')body='Assembly: ~'+d.in+'% ('+curYr+')<br><span style="font-size:11px;color:#4e6090">Domestic market hub</span>';
+    document.getElementById('mpPopT').textContent=nm;
+    document.getElementById('mpPopB').innerHTML=body;
+    var popup=document.getElementById('mpPop');
+    var bb=el.getBBox();
+    popup.style.left=Math.min(700,Math.max(8,bb.x+bb.width/2-72))+'px';
+    popup.style.top=(bb.y-48)+'px';
+    popup.classList.add('show');
+    clearTimeout(popup._t);
+    popup._t=setTimeout(function(){popup.classList.remove('show');},3500);
+  });
+}
+addMapClick('mCN');addMapClick('mVN');addMapClick('mIN');
+
+/* ========== TIMELINE SCROLL ========== */
+var tlArea=document.getElementById('tlArea');
+var tlNds=document.querySelectorAll('.tl-nd');
+var tlBarF=document.getElementById('tlBarF');
+tlArea.addEventListener('scroll',function(){
+  var max=tlArea.scrollWidth-tlArea.clientWidth;
+  var pct=max>0?tlArea.scrollLeft/max:0;
+  tlBarF.style.width=(pct*100)+'%';
+  tlNds.forEach(function(n){
+    var r=n.getBoundingClientRect();
+    n.classList.toggle('active',r.left<innerWidth*.7&&r.right>innerWidth*.3);
+  });
+});
+
+/* ========== SHARE ========== */
+function doShare(){
+  if(navigator.share)navigator.share({title:'One Smartphone, See Through the Global Supply Chain',url:location.href});
+  else prompt('Copy this link:',location.href);
+}
+
+/* ========== INIT ========== */
+updateMap(2018);
+</script>
+</body>
+</html>
